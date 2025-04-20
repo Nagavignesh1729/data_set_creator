@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Point Drawer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
@@ -9,6 +10,12 @@
             flex-direction: column;
             align-items: center;
             font-family: sans-serif;
+            -webkit-touch-callout: none;  /* Prevent context menu on long press */
+            -webkit-user-select: none;    /* Prevent text selection */
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         canvas {
             border: 2px solid #333;
@@ -49,15 +56,18 @@
         let points = [];
         let drawing = false;
 
+        // Mouse events
         canvas.addEventListener('mousedown', (e) => {
             drawing = true;
-            addPoint(e);
+            addPoint(e.clientX, e.clientY);
+            e.preventDefault(); // Prevent mouse events from interfering with touch
         });
 
         canvas.addEventListener('mousemove', (e) => {
             if (drawing) {
-                addPoint(e);
+                addPoint(e.clientX, e.clientY);
             }
+            e.preventDefault();
         });
 
         canvas.addEventListener('mouseup', () => {
@@ -68,13 +78,37 @@
             drawing = false;
         });
 
-        function addPoint(e) {
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            drawing = true;
+            const touch = e.touches[0];
+            addPoint(touch.clientX, touch.clientY);
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (drawing) {
+                const touch = e.touches[0];
+                addPoint(touch.clientX, touch.clientY);
+            }
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => {
+            drawing = false;
+        });
+
+        canvas.addEventListener('touchcancel', () => {
+            drawing = false;
+        });
+
+        function addPoint(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
             points.push({ x, y });
             ctx.beginPath();
-            ctx.arc(x, y, 2, 0, 2 * Math.PI);  // Radius of 2
+            ctx.arc(x, y, 2, 0, 2 * Math.PI);
             ctx.fillStyle = 'red';
             ctx.fill();
             ctx.closePath();
@@ -92,7 +126,7 @@
 
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'points.json';  // Default filename
+            a.download = 'points.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -103,3 +137,4 @@
     </script>
 </body>
 </html>
+
