@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Point Drawer</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #f0f0f0;
+            cursor: crosshair;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #367c39;
+        }
+        #message {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pointCanvas" width="800" height="600"></canvas>
+    <button id="saveButton">Save Points</button>
+    <div id="message">Click and drag on the canvas to draw points.</div>
+
+    <script>
+        const canvas = document.getElementById('pointCanvas');
+        const ctx = canvas.getContext('2d');
+        const saveButton = document.getElementById('saveButton');
+        const messageDiv = document.getElementById('message');
+
+        let points = [];
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            addPoint(e);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                addPoint(e);
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            drawing = false;
+        });
+
+        function addPoint(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            points.push({ x, y });
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, 2 * Math.PI);  // Radius of 2
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        saveButton.addEventListener('click', () => {
+            if (points.length === 0) {
+                messageDiv.textContent = "No points to save.";
+                return;
+            }
+
+            const dataStr = JSON.stringify(points);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'points.json';  // Default filename
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            messageDiv.textContent = "Points saved to points.json";
+        });
+    </script>
+</body>
+</html>
